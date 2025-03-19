@@ -14,19 +14,16 @@ export class TaxCalculator {
     calculateSellTax(saleValue, costBasis) {
         const profit = saleValue.minus(costBasis)
 
-        // If it's a loss, accumulate it and return zero tax
         if (profit.lessThanOrEqualTo(0)) {
             this.accumulatedLoss = this.accumulatedLoss.plus(profit.abs())
             return 0
         }
 
-        // Check tax exemption
         const isTaxExempt = saleValue.lessThanOrEqualTo(this.TAX_EXEMPTION_THRESHOLD)
         if (isTaxExempt) {
             return 0
         }
 
-        // Apply accumulated losses
         let taxableProfit = profit
         if (this.accumulatedLoss.greaterThan(0)) {
             if (this.accumulatedLoss.greaterThanOrEqualTo(profit)) {
@@ -38,7 +35,6 @@ export class TaxCalculator {
             }
         }
 
-        // Calculate tax (20% of taxable profit)
         const tax = taxableProfit.times(this.TAX_RATE)
         return Number(tax.toFixed(2))
     }

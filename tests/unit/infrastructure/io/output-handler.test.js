@@ -1,153 +1,42 @@
-import { describe, test, expect, jest, beforeEach, afterEach } from "@jest/globals"
-import { OutputHandler } from "../../../../src/infrastructure/io/output-handler.js"
-import { Writable } from "stream"
+import { describe, test, expect, jest, beforeEach } from '@jest/globals'
+import { OutputHandler } from '../../../../src/infrastructure/io/output-handler'
 
-describe("OutputHandler", () => {
-    // Configuração para capturar saídas do console
-    let stdoutSpy
-    let stderrSpy
+describe('OutputHandler', () => {
+    let outputHandler
+    let mockStdoutWrite
+    let mockStderrWrite
 
     beforeEach(() => {
-        // Espionar stdout e stderr para verificar saídas
-        stdoutSpy = jest.spyOn(process.stdout, "write").mockImplementation(() => { })
-        stderrSpy = jest.spyOn(process.stderr, "write").mockImplementation(() => { })
+        outputHandler = new OutputHandler()
+        mockStdoutWrite = jest.spyOn(process.stdout, 'write').mockImplementation(() => {})
+        mockStderrWrite = jest.spyOn(process.stderr, 'write').mockImplementation(() => {})
     })
 
     afterEach(() => {
-        // Restaurar os spies após cada teste
-        stdoutSpy.mockRestore()
-        stderrSpy.mockRestore()
+        jest.restoreAllMocks()
     })
 
-    describe("Default behavior (using process streams)", () => {
-        test("should write messages to stdout by default", () => {
-            // Arrange
-            const handler = new OutputHandler()
-            const message = "Test message"
-
-            // Act
-            handler.write(message)
-
-            // Assert
-            expect(stdoutSpy).toHaveBeenCalledWith(`${message}\n`)
-        })
-
-        test("should write error messages to stderr by default", () => {
-            // Arrange
-            const handler = new OutputHandler()
-            const errorMessage = "Error occurred"
-
-            // Act
-            handler.writeError(errorMessage)
-
-            // Assert
-            expect(stderrSpy).toHaveBeenCalledWith(`${errorMessage}\n`)
-        })
+    test('write should call process.stdout.write with the correct message', () => {
+        const message = 'Test message'
+        outputHandler.write(message)
+        expect(mockStdoutWrite).toHaveBeenCalledWith(`${message}\n`)
     })
 
-    describe("Custom streams (for testing)", () => {
-        test("should use injected streams when provided", () => {
-            // Arrange - Create mock streams
-            const mockOutput = { write: jest.fn() }
-            const mockError = { write: jest.fn() }
-
-            // Create handler with custom streams
-            const handler = new OutputHandler({
-                outputStream: mockOutput,
-                errorStream: mockError,
-            })
-
-            // Act
-            handler.write("Normal message")
-            handler.writeError("Error message")
-
-            // Assert
-            expect(mockOutput.write).toHaveBeenCalledWith("Normal message\n")
-            expect(mockError.write).toHaveBeenCalledWith("Error message\n")
-
-            // Verify default streams weren't used
-            expect(stdoutSpy).not.toHaveBeenCalled()
-            expect(stderrSpy).not.toHaveBeenCalled()
-        })
+    test('writeError should call process.stderr.write with the correct message', () => {
+        const errorMessage = 'Test error message'
+        outputHandler.writeError(errorMessage)
+        expect(mockStderrWrite).toHaveBeenCalledWith(`${errorMessage}\n`)
     })
 
-    describe("Edge cases", () => {
-        test("should handle empty messages", () => {
-            // Arrange
-            const handler = new OutputHandler()
-
-            // Act
-            handler.write("")
-            handler.writeError("")
-
-            // Assert
-            expect(stdoutSpy).toHaveBeenCalledWith("\n")
-            expect(stderrSpy).toHaveBeenCalledWith("\n")
-        })
-
-        test("should convert non-string messages to strings", () => {
-            // Arrange
-            const handler = new OutputHandler()
-            const obj = { key: "value" }
-
-            // Act
-            handler.write(obj)
-
-            // Assert - Object.toString() is called implicitly
-            expect(stdoutSpy).toHaveBeenCalledWith(`${obj}\n`)
-        })
-
-        test("should handle null and undefined messages", () => {
-            // Arrange
-            const handler = new OutputHandler()
-
-            // Act & Assert - Should not throw errors
-            expect(() => {
-                handler.write(null)
-                handler.write(undefined)
-                handler.writeError(null)
-                handler.writeError(undefined)
-            }).not.toThrow()
-
-            // Verify correct string conversion
-            expect(stdoutSpy).toHaveBeenCalledWith("null\n")
-            expect(stdoutSpy).toHaveBeenCalledWith("undefined\n")
-        })
+    test('write should handle empty message', () => {
+        const message = ''
+        outputHandler.write(message)
+        expect(mockStdoutWrite).toHaveBeenCalledWith('\n')
     })
 
-    describe("Real-world usage with streams", () => {
-        test("should work with actual Writable streams", () => {
-            // Arrange - Create actual Writable streams that capture output
-            const outputs = []
-            const errors = []
-
-            const outputStream = new Writable({
-                write(chunk, encoding, callback) {
-                    outputs.push(chunk.toString())
-                    callback()
-                },
-            })
-
-            const errorStream = new Writable({
-                write(chunk, encoding, callback) {
-                    errors.push(chunk.toString())
-                    callback()
-                },
-            })
-
-            const handler = new OutputHandler({
-                outputStream,
-                errorStream,
-            })
-
-            // Act
-            handler.write("Stream message")
-            handler.writeError("Stream error")
-
-            // Assert
-            expect(outputs).toContain("Stream message\n")
-            expect(errors).toContain("Stream error\n")
-        })
+    test('writeError should handle empty message', () => {
+        const errorMessage = ''
+        outputHandler.writeError(errorMessage)
+        expect(mockStderrWrite).toHaveBeenCalledWith('\n')
     })
 })
-

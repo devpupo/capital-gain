@@ -13,6 +13,7 @@ export class Portfolio {
 
         if (newTotalShares > 0) {
             this.weightedAverage = currentValue.plus(newValue).dividedBy(newTotalShares)
+            this.weightedAverage = this.weightedAverage.toDecimalPlaces(2)
         } else {
             this.weightedAverage = new Decimal(0)
         }

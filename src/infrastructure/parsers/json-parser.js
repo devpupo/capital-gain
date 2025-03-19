@@ -1,4 +1,4 @@
-export class IOParser {
+export class JsonParser {
 
     parseInput(data) {
         if (typeof data !== 'string') {

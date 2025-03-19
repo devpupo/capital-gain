@@ -12,7 +12,7 @@ export class OperationController {
             const data = this.ioParser.parseInput(line)
             this.operations.push(data)
         } catch (error) {
-            this.outputHandler.writeError(`Error: ${error.message} `)
+            this.outputHandler.writeError(`Error: ${error.message}`)
         }
     }
 
@@ -32,7 +32,7 @@ export class OperationController {
 
             this.outputHandler.write(output)
         } catch (error) {
-            this.outputHandler.writeError(`Error processing operations: ${error.message} `)
+            this.outputHandler.writeError(`Error processing operations: ${error.message}`)
         }
     }
 }
