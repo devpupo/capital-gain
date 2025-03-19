@@ -1,0 +1,20 @@
+{
+  "testEnvironment": "node",
+  "roots": [
+    "<rootDir>/tests"
+  ],
+  "collectCoverageFrom": [
+    "src/**/*.js",
+    "!src/index.js",
+    "!**/node_modules/**"
+  ],
+  "coverageThreshold": {
+    "global": {
+      "branches": 80,
+      "functions": 80,
+      "lines": 80,
+      "statistics": 80
+    }
+  },
+  "transform": {}
+}
