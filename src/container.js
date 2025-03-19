@@ -3,13 +3,13 @@ import { createContainer, asClass, asValue } from 'awilix'
 import { ReadlineFactory } from './infrastructure/io/readline-factory.js'
 import { InputHandler } from './infrastructure/io/input-handler.js'
 import { OutputHandler } from './infrastructure/io/output-handler.js'
-import { InputParser } from './infrastructure/parsers/input-parser.js'
-import { OutputParser } from './infrastructure/parsers/output-parser.js'
+import { IOParser } from './infrastructure/parsers/io-parser.js'
 
 import { Operation } from './domain/entities/operation.js'
 import { Portfolio } from './domain/entities/portfolio.js'
 import { TaxCalculator } from './domain/services/tax-calculator.js'
 
+import { OperationController } from './application/operation-controller.js'
 import { OperationProcessor } from './application/operation-processor.js'
 import { App } from './application/app.js'
 
@@ -24,13 +24,13 @@ container.register({
     taxCalculator: asClass(TaxCalculator).scoped(),
 
     /* Infrastructure  */
-    inputParser: asClass(InputParser).singleton(),
-    outputParser: asClass(OutputParser).singleton(),
+    ioParser: asClass(IOParser).singleton(),
     readlineFactory: asClass(ReadlineFactory).singleton(),
     inputHandler: asClass(InputHandler).singleton(),
     outputHandler: asClass(OutputHandler).singleton(),
 
     /* Application */
+    operationController: asClass(OperationController).singleton(),
     operationProcessor: asClass(OperationProcessor).scoped(),
     app: asClass(App).singleton(),
 })

@@ -1,11 +1,16 @@
-import { Operation } from '../domain/entities/operation.js'
 import { Decimal } from '../utils/decimal-utils.js'
 
 export class OperationProcessor {
 
-    constructor({ portfolio, taxCalculator }) {
+    constructor({ portfolio, taxCalculator, operation }) {
         this.portfolio = portfolio
         this.taxCalculator = taxCalculator
+        this.operation = operation
+
+        this.operationStrategies = {
+            [this.operation.TYPES.BUY]: this.processBuyOperation.bind(this),
+            [this.operation.TYPES.SELL]: this.processSellOperation.bind(this)
+        }
     }
 
     processOperations(rawOperations) {
@@ -14,7 +19,7 @@ export class OperationProcessor {
         this.taxCalculator.resetAccumulatedLoss()
 
         for (const rawOp of rawOperations) {
-            const operation = Operation.fromRawData(rawOp)
+            const operation = this.operation.fromRawData(rawOp)
             const taxResult = this.processOperation(operation)
             results.push({ tax: taxResult })
         }
@@ -23,13 +28,13 @@ export class OperationProcessor {
     }
 
     processOperation(operation) {
-        if (operation.isBuy()) {
-            return this.processBuyOperation(operation)
-        } else if (operation.isSell()) {
-            return this.processSellOperation(operation)
-        } else {
+        const strategy = this.operationStrategies[operation.type]
+
+        if (!strategy) {
             throw new Error(`Unknown operation type: ${operation.type}`)
         }
+
+        return strategy(operation)
     }
 
     processBuyOperation(operation) {
@@ -38,10 +43,12 @@ export class OperationProcessor {
     }
 
     processSellOperation(operation) {
-        const saleValue = new Decimal(operation.quantity).times(operation.unitCost)
-        const costBasis = new Decimal(operation.quantity).times(this.portfolio.getWeightedAverage())
+        const { quantity, unitCost } = operation
 
-        this.portfolio.removeShares(operation.quantity)
+        const saleValue = new Decimal(quantity).times(unitCost)
+        const costBasis = new Decimal(quantity).times(this.portfolio.getWeightedAverage())
+
+        this.portfolio.removeShares(quantity)
 
         return this.taxCalculator.calculateSellTax(saleValue, costBasis)
     }
