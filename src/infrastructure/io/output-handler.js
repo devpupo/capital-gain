@@ -6,11 +6,11 @@ export class OutputHandler {
     }
 
     write(message) {
-        this.outputStream.write(`${message}\n`)
+        this.outputStream.write(`${message}\n`);
     }
 
     writeError(message) {
-        this.errorStream.write(`${message}\n`)
+        this.errorStream.write(`${message}\n`);
     }
 }
 

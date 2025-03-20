@@ -9,30 +9,30 @@ export class OperationController {
 
     handleInputLine(line) {
         try {
-            const data = this.ioParser.parseInput(line)
-            this.operations.push(data)
+            const data = this.ioParser.parseInput(line);
+            this.operations.push(data);
         } catch (error) {
-            this.outputHandler.writeError(`Error: ${error.message}`)
+            this.outputHandler.writeError(`Error: ${error.message}`);
         }
     }
 
     processAllOperations() {
         for (const operations of this.operations) {
-            this.processOperationBatch(operations)
+            this.processOperationBatch(operations);
         }
     }
 
     processOperationBatch(operations) {
         try {
-            const scope = this.container.createScope()
-            const { operationProcessor } = scope.cradle
+            const scope = this.container.createScope();
+            const { operationProcessor } = scope.cradle;
 
-            const results = operationProcessor.processOperations(operations)
-            const output = this.ioParser.formatOutput(results)
+            const results = operationProcessor.processOperations(operations);
+            const output = this.ioParser.formatOutput(results);
 
-            this.outputHandler.write(output)
+            this.outputHandler.write(output);
         } catch (error) {
-            this.outputHandler.writeError(`Error processing operations: ${error.message}`)
+            this.outputHandler.writeError(`Error processing operations: ${error.message}`);
         }
     }
 }

@@ -6,17 +6,17 @@ export class App {
     }
 
     start() {
-        this.setupEventListeners()
+        this.setupEventListeners();
         return this
     }
 
     setupEventListeners() {
         this.inputHandler.on('data', (line) => {
-            this.operationController.handleInputLine(line)
+            this.operationController.handleInputLine(line);
         })
 
         this.inputHandler.on('end', () => {
-            this.operationController.processAllOperations()
+            this.operationController.processAllOperations();
         })
     }
 }
