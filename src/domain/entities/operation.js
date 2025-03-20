@@ -1,8 +1,4 @@
 export class Operation {
-    TYPES = {
-        BUY: 'buy',
-        SELL: 'sell'
-    }
 
     constructor(type, unitCost, quantity) {
         this.type = type
@@ -12,14 +8,6 @@ export class Operation {
 
     getTotalValue() {
         return this.unitCost * this.quantity
-    }
-
-    isBuy() {
-        return this.type === this.TYPES.BUY
-    }
-
-    isSell() {
-        return this.type === this.TYPES.SELL
     }
 
     fromRawData(data) {

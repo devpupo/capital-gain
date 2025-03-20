@@ -1,10 +1,8 @@
-import { Decimal } from '../../utils/decimal-utils.js'
+import { Decimal } from '../../infrastructure/utils/decimal-utils.js'
 
 export class TaxCalculator {
     constructor() {
         this.accumulatedLoss = new Decimal(0)
-        this.TAX_RATE = new Decimal(0.2) // 20%
-        this.TAX_EXEMPTION_THRESHOLD = new Decimal(20000)
     }
 
     calculateBuyTax() {
@@ -12,6 +10,10 @@ export class TaxCalculator {
     }
 
     calculateSellTax(saleValue, costBasis) {
+        const TAX_RATE = new Decimal(0.2) // 20%
+        const TAX_EXEMPTION_THRESHOLD = new Decimal(20000)
+
+
         const profit = saleValue.minus(costBasis)
 
         if (profit.lessThanOrEqualTo(0)) {
@@ -19,7 +21,8 @@ export class TaxCalculator {
             return 0
         }
 
-        const isTaxExempt = saleValue.lessThanOrEqualTo(this.TAX_EXEMPTION_THRESHOLD)
+        const isTaxExempt = saleValue.lessThanOrEqualTo(TAX_EXEMPTION_THRESHOLD)
+        
         if (isTaxExempt) {
             return 0
         }
@@ -35,7 +38,7 @@ export class TaxCalculator {
             }
         }
 
-        const tax = taxableProfit.times(this.TAX_RATE)
+        const tax = taxableProfit.times(TAX_RATE)
         return Number(tax.toFixed(2))
     }
 

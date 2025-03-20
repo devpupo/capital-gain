@@ -1,8 +1,6 @@
 export class App {
 
-
-    constructor({ container, inputHandler, operationController }) {
-        this.container = container
+    constructor({ inputHandler, operationController }) {
         this.inputHandler = inputHandler
         this.operationController = operationController
     }

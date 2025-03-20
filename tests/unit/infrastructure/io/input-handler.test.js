@@ -3,19 +3,17 @@ import { InputHandler } from '../../../../src/infrastructure/io/input-handler.js
 
 describe('InputHandler', () => {
     let inputHandler
-    let mockReadlineFactory
-    let mockReadlineInterface
+    const mockReadlineInterface = {
+        on: jest.fn(),
+        close: jest.fn(),
+    }
+
+    const mockReadlineFactory = {
+        createInterface: jest.fn().mockReturnValue(mockReadlineInterface),
+    }
 
     beforeEach(() => {
-        mockReadlineInterface = {
-            on: jest.fn(),
-            close: jest.fn(),
-        }
-
-        mockReadlineFactory = {
-            createInterface: jest.fn().mockReturnValue(mockReadlineInterface),
-        }
-
+        jest.clearAllMocks()
         inputHandler = new InputHandler({
             readlineFactory: mockReadlineFactory,
         })
@@ -27,7 +25,6 @@ describe('InputHandler', () => {
 
     test('should emit data event when line is received', () => {
         const lineCallback = mockReadlineInterface.on.mock.calls.find((call) => call[0] === 'line')[1]
-
         const emitSpy = jest.spyOn(inputHandler, 'emit')
 
         lineCallback('test data')
@@ -43,4 +40,3 @@ describe('InputHandler', () => {
         expect(mockReadlineInterface.close).toHaveBeenCalled()
     })
 })
-

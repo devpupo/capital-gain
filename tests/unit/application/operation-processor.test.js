@@ -1,77 +1,98 @@
-import { describe, test, expect, jest, beforeEach } from '@jest/globals'
-import { OperationProcessor } from '../../../src/application/operation-processor.js'
-import { Decimal } from '../../../src/utils/decimal-utils.js'
+import { describe, expect, jest, beforeEach } from '@jest/globals';
+import { OperationProcessor } from '../../../src/application/operation-processor.js';
 
 describe('OperationProcessor', () => {
-    let portfolioMock;
-    let taxCalculatorMock;
-    let operationMock;
+    let mockPortfolio;
+    let mockOperation;
+    let mockTaxCalculator;
+    let mockOperationStrategyFactory;
     let operationProcessor;
 
     beforeEach(() => {
-        portfolioMock = {
-            addShares: jest.fn(),
-            removeShares: jest.fn(),
-            getWeightedAverage: jest.fn().mockReturnValue(new Decimal(10)),
-            getTotalShares: jest.fn(),
+        mockPortfolio = {};
+
+        mockOperation = {
+            fromRawData: jest.fn(),
         };
 
-        taxCalculatorMock = {
-            calculateBuyTax: jest.fn().mockReturnValue(0),
-            calculateSellTax: jest.fn().mockReturnValue(1000),
+        mockTaxCalculator = {
             resetAccumulatedLoss: jest.fn(),
         };
 
-        operationMock = {
-            TYPES: {
-                BUY: 'buy',
-                SELL: 'sell',
-            },
-            fromRawData: jest.fn().mockImplementation((data) => ({
-                type: data.operation,
-                quantity: data.quantity,
-                unitCost: new Decimal(data['unit-cost']),
-            })),
+        mockOperationStrategyFactory = {
+            createStrategy: jest.fn(),
         };
 
         operationProcessor = new OperationProcessor({
-            portfolio: portfolioMock,
-            taxCalculator: taxCalculatorMock,
-            operation: operationMock,
-        });
-    });
-
-    describe('processSellOperation', () => {
-        test('should remove shares from portfolio and calculate tax correctly', () => {
-            const sellOperation = { type: 'sell', quantity: 50, unitCost: new Decimal(20) };
-            const tax = operationProcessor.processSellOperation(sellOperation);
-
-            expect(portfolioMock.removeShares).toHaveBeenCalledWith(50);
-            expect(portfolioMock.getWeightedAverage).toHaveBeenCalled();
-
-            const expectedSaleValue = new Decimal(50).times(new Decimal(20));
-            const expectedCostBasis = new Decimal(50).times(new Decimal(10));
-            expect(taxCalculatorMock.calculateSellTax).toHaveBeenCalledWith(expectedSaleValue, expectedCostBasis);
-
-            expect(tax).toBe(1000);
+            portfolio: mockPortfolio,
+            operation: mockOperation,
+            taxCalculator: mockTaxCalculator,
+            operationStrategyFactory: mockOperationStrategyFactory,
         });
     });
 
     describe('processOperations', () => {
-        test('should process multiple operations and return correct tax results', () => {
+        it('should process multiple operations and return tax results', () => {
             const rawOperations = [
-                { operation: 'buy', 'unit-cost': 10, quantity: 100 },
-                { operation: 'sell', 'unit-cost': 20, quantity: 50 },
+                { type: 'buy', quantity: 10, unitCost: 20 },
+                { type: 'sell', quantity: 5, unitCost: 25 },
             ];
+
+            const mockOperation1 = { type: 'buy', quantity: 10, unitCost: 20 };
+            const mockOperation2 = { type: 'sell', quantity: 5, unitCost: 25 };
+
+            mockOperation.fromRawData
+                .mockReturnValueOnce(mockOperation1)
+                .mockReturnValueOnce(mockOperation2);
+
+            const mockStrategy1 = jest.fn().mockReturnValue(0);
+            const mockStrategy2 = jest.fn().mockReturnValue(5);
+
+            mockOperationStrategyFactory.createStrategy
+                .mockReturnValueOnce(mockStrategy1)
+                .mockReturnValueOnce(mockStrategy2);
 
             const results = operationProcessor.processOperations(rawOperations);
 
-            expect(taxCalculatorMock.resetAccumulatedLoss).toHaveBeenCalled();
-            expect(operationMock.fromRawData).toHaveBeenCalledTimes(2);
-            expect(results).toEqual([
-                { tax: 0 },
-                { tax: 1000 },
-            ]);
+            expect(mockTaxCalculator.resetAccumulatedLoss).toHaveBeenCalled();
+
+            expect(mockOperation.fromRawData).toHaveBeenCalledWith(rawOperations[0]);
+            expect(mockOperation.fromRawData).toHaveBeenCalledWith(rawOperations[1]);
+
+            expect(mockOperationStrategyFactory.createStrategy).toHaveBeenCalledWith('buy', operationProcessor);
+            expect(mockOperationStrategyFactory.createStrategy).toHaveBeenCalledWith('sell', operationProcessor);
+
+            expect(mockStrategy1).toHaveBeenCalledWith(mockOperation1);
+            expect(mockStrategy2).toHaveBeenCalledWith(mockOperation2);
+
+            expect(results).toEqual([{ tax: 0 }, { tax: 5 }]);
+        });
+
+        it('should handle empty operations array', () => {
+            const rawOperations = [];
+
+            const results = operationProcessor.processOperations(rawOperations);
+
+            expect(mockTaxCalculator.resetAccumulatedLoss).toHaveBeenCalled();
+            expect(mockOperation.fromRawData).not.toHaveBeenCalled();
+            expect(mockOperationStrategyFactory.createStrategy).not.toHaveBeenCalled();
+
+            expect(results).toEqual([]);
+        });
+    });
+
+    describe('processOperation', () => {
+        it('should create and execute the correct strategy for an operation', () => {
+            const operation = { type: 'sell', quantity: 5, unitCost: 25 };
+
+            const mockStrategy = jest.fn().mockReturnValue(10);
+            mockOperationStrategyFactory.createStrategy.mockReturnValue(mockStrategy);
+
+            const taxResult = operationProcessor.processOperation(operation);
+
+            expect(mockOperationStrategyFactory.createStrategy).toHaveBeenCalledWith('sell', operationProcessor);
+            expect(mockStrategy).toHaveBeenCalledWith(operation);
+            expect(taxResult).toBe(10);
         });
     });
 });

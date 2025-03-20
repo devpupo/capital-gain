@@ -8,11 +8,12 @@
     "test": "tests"
   },
   "scripts": {
-    "dev": "node src/index.js < ./inputs/case7.txt",
+    "dev": "node src/index.js",
     "test": "node --experimental-vm-modules node_modules/.bin/jest",
     "test:unit": "node --experimental-vm-modules node_modules/.bin/jest --testPathPattern=tests/unit",
     "test:integration": "node --experimental-vm-modules node_modules/.bin/jest --testPathPattern=tests/integration",
-    "test:coverage": "node --experimental-vm-modules node_modules/.bin/jest --coverage"
+    "test:coverage": "node --experimental-vm-modules node_modules/.bin/jest --coverage",
+    "test:case": "node src/index.js < ./tests/fixtures/inputs/case$CASE_NUMBER.txt"
   },
   "author": "",
   "license": "ISC",

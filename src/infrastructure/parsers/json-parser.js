@@ -5,7 +5,11 @@ export class JsonParser {
             throw new Error(`Invalid input: expected string but got ${typeof data}`);
         }
 
-        return JSON.parse(data);
+        try {
+            return JSON.parse(data);
+        } catch (error) {
+            throw new Error(`Invalid input json: ${error.message}`);
+        }
     }
 
     formatOutput(data) {

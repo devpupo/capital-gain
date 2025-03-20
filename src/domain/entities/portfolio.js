@@ -1,4 +1,4 @@
-import { Decimal } from '../../utils/decimal-utils.js'
+import { Decimal } from '../../infrastructure/utils/decimal-utils.js'
 
 export class Portfolio {
     constructor() {
